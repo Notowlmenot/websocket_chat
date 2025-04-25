@@ -1,7 +1,7 @@
 package server
 
 import (
-	"chat/internal/handlers"
+	"chat/internal/auth"
 	"chat/internal/ws"
 	"fmt"
 	"net/http"
@@ -10,13 +10,13 @@ import (
 )
 
 func SetupRoutes(router *gin.Engine) {
-	// Define routes here
 	router.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello, World!")
 	})
 
-	router.GET("/register", handlers.Register)
 	router.GET("/ws", ws.WebsocketHandler)
+	router.POST("/register", auth.RegisterHandler)
+	router.GET("/auth", auth.AuthHandler)
 }
 
 func RunServer(PORT string) error {

@@ -69,7 +69,7 @@ func WebsocketHandler(c *gin.Context) {
 					mutex.Lock()
 					delete(clients, client) // Удаляем из оригинального списка
 					mutex.Unlock()
-					client.conn.Close() // Закрываем соединение
+					client.conn.Close()
 				}
 			}
 		}
