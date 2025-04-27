@@ -41,5 +41,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error starting server: %v", err)
 	}
-
+	defer database.DB.Close()
 }

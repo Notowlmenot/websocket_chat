@@ -6,14 +6,19 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(router *gin.Engine) {
+	//Настройка CORS
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true // Разрешить все источники
+	router.Use(cors.New(config))
+
 	router.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Hello, World!")
 	})
-
 	router.GET("/ws", ws.WebsocketHandler)
 	router.POST("/register", auth.RegisterHandler)
 	router.GET("/auth", auth.AuthHandler)

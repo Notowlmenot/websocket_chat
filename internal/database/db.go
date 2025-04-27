@@ -19,10 +19,8 @@ func ConnectDB(connStr string) error {
 	if err != nil {
 		return fmt.Errorf("error connecting to DB: %w", err)
 	}
-	defer db.Close()
 
 	log.Printf("Connected to database succesfully")
-
 	DB = db
 	return nil
 }
