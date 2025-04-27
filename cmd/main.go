@@ -11,6 +11,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var envFilePath string
+
 func main() {
 	//Получение данных из env
 	currentDir, err := os.Getwd()
@@ -18,7 +20,7 @@ func main() {
 		log.Fatalf("Error getting current directory: %v", err)
 	}
 	parentDir := filepath.Dir(currentDir)
-	envFilePath := filepath.Join(parentDir, ".env")
+	envFilePath = filepath.Join(parentDir, ".env")
 	err = godotenv.Load(envFilePath)
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)

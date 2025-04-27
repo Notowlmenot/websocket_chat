@@ -13,7 +13,10 @@ import (
 func SetupRoutes(router *gin.Engine) {
 	//Настройка CORS
 	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true // Разрешить все источники
+	config.AllowOrigins = []string{"*"} // Allows requests from ANY origin - NOT RECOMMENDED FOR PRODUCTION
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization"}
+	config.AllowCredentials = true
 	router.Use(cors.New(config))
 
 	router.GET("/", func(c *gin.Context) {

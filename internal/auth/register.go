@@ -2,10 +2,12 @@ package auth
 
 import (
 	"chat/internal/database"
+	JWT "chat/internal/jwt"
 	"errors"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
@@ -13,8 +15,8 @@ import (
 )
 
 func RegisterHandler(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	var userid int
+	username, password := c.PostForm("username"), c.PostForm("password")
 	if username == "" || password == "" {
 		c.String(http.StatusBadRequest, "missing username or password")
 		return
@@ -34,8 +36,7 @@ func RegisterHandler(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "registration failed: error hashing password")
 		return
 	}
-
-	_, err = database.DB.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, hashedPassword)
+	err = database.DB.QueryRow("INSERT INTO users (username, password) VALUES ($1, $2) returning id", username, hashedPassword).Scan(&userid)
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
@@ -43,8 +44,36 @@ func RegisterHandler(c *gin.Context) {
 			return
 		}
 		log.Println("Error inserting user into database:", err)
-		c.String(http.StatusInternalServerError, "registration failed: database error")
+		c.String(http.StatusInternalServerError, "registration failed: error inserting user")
 		return
 	}
-	c.String(http.StatusOK, "User successfully created")
+
+	// Сгенерировать refresh token
+	_, err = JWT.GenerateRefreshToken(userid)
+	if err != nil {
+		log.Println("Error generating refresh token:", err)
+		c.String(http.StatusInternalServerError, "registration failed: error generating refresh token")
+		return
+	}
+
+	// Сгенерировать access token
+	accessToken, err := JWT.GenerateAcessToken(userid)
+	if err != nil {
+		log.Println("Error generating access token:", err)
+		c.String(http.StatusInternalServerError, "registration failed: error generating access token")
+		return
+	}
+
+	// Установить access token в HTTP-only cookie
+	c.SetCookie(
+		"access_token",
+		accessToken,
+		int(time.Minute*15),
+		"/",
+		"",
+		false, // Secure (false для разработки, true в production - только HTTPS)
+		true,
+	)
+
+	c.String(http.StatusOK, "User registered successfully")
 }
